@@ -1,0 +1,41 @@
+{% extends 'default.html' %}
+{% load news_filters %}
+{% block title %}{{article.title|censor}}{% endblock %}
+
+{% block content %}
+    <body>
+        <h1>{{ article.title|censor}}</h1>
+        <!--<img src="{{ article.image.url }}" alt="{{ post.title }}">-->
+
+
+        <article class="card">
+            {% if article.image %}
+                <img src="{{ article.image.url }}" alt="{{ article.title }}">
+            {% endif %}
+        </article>
+
+        <!-- Форматирование даты: d (день), m (месяц), Y (год 4 цифры) -->
+        <p><i>Дата публикации: {{ article.data|date:"d.m.Y" }}</i></p>
+
+        <hr>
+
+        <div class="content">
+            {{ article.text|censor|linebreaks }}
+        </div>
+
+        <a href="/news/">Назад к списку новостей</a>
+    </body>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Modern News 2025{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+    <header class="navbar">
+        <div class="container">
+            <h1 class="logo">Daily<span>News</span></h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'news:news' %}">Все новости</a></li>
+                    <li><a href="#">Политика</a></li>
+                    <li><a href="#">Технологии</a></li>
+                    <li><a href="#">Спорт</a></li>
+                    <li><a href="#">Культура</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %}
+        <!-- Здесь будет содержимое из index.html -->
+        {% endblock %}
+    </main>
+
+    <footer class="container" style="margin-top: 50px; padding: 20px 0; border-top: 1px solid #ddd;">
+        <p>&copy; 2025 Daily News Portal</p>
+    </footer>
+</body>
+</html>

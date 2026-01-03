@@ -1,0 +1,33 @@
+{% extends 'default.html' %}
+
+{% block title %}Все новости — Daily News{% endblock %}
+{% load news_filters %}
+{% block content %}
+<section class="all-news">
+    <h1 style="margin: 40px 0;">Все свежие новости</h1>
+
+    <div class="news-grid">
+        {% for post in post %}
+        <article class="card">
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}">
+            {% else %}
+                <img src="via.placeholder.com" alt="Нет фото">
+            {% endif %}
+
+            <div class="card-body">
+                <span class="badge" style="background: #666; margin-bottom: 10px; display: inline-block;">
+                    {{ post.category }}
+                </span>
+                <h3>{{ post.title|censor  }}</h3>
+                <p>{{ post.text|censor|truncatewords:20 }}</p>
+                <p><small>{{ post.data|date:"d.m.Y H:i" }}</small></p>
+                <a href="{% url 'news:news_detail' post.pk %}">Читать далее</a>
+            </div>
+        </article>
+        {% empty %}
+            <p>Новостей пока нет.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'default.html' %}
+
+{% block title %}Главная — Daily News{% endblock %}
+{% load news_filters %}
+{% block content %}
+    <!-- Главная новость дня -->
+    <section class="hero-news">
+
+        <div class="hero-image"
+             style="background-image: url('{% if main_post.image %}{{ main_post.image.url }}{% else %}via.placeholder.com{% endif %}');">
+
+            <div class="hero-content">
+                <span class="badge">Тренды 2026</span>
+                <h2>{{ main_post.title|censor }}</h2>
+                <p>{{ main_post.text|censor|truncatewords:20 }}</p>
+                <a href="{% url 'news:news_detail' main_post.pk %}" class="btn">Читать далее</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Сетка новостей -->
+    {% for i in side_news %}
+    <section class="news-grid">
+        <article class="card">
+            <img src="{{ i.image.url }}" alt="{{ i.title }}">
+            <div class="card-body">
+                <h3>{{i.title|censor}}х</h3>
+                <p>i.text|censor|truncatewords:20</p>
+            </div>
+        </article>
+    </section>
+    {% endfor %}
+{% endblock %}

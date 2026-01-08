@@ -1,0 +1,17 @@
+<h1>Поиск новостей</h1>
+
+<form action="" method="get">
+    {{ filterset.form.as_p }}
+    <input type="submit" value="Найти" />
+</form>
+
+<hr>
+
+{% for n in news %}
+    <div>
+        <h3>{{ n.title }}</h3>
+        <p>Автор: {{ n.author }} | Дата: {{ n.data|date:'d.m.Y' }}</p>
+    </div>
+{% empty %}
+    <p>По вашим критериям ничего не найдено.</p>
+{% endfor %}

@@ -1,0 +1,6 @@
+<h1>Удаление</h1>
+<form method="post">
+    {% csrf_token %}
+    <p>Вы точно хотите удалить "{{ object.title }}"?</p>
+    <button type="submit">Подтвердить удаление</button>
+</form>

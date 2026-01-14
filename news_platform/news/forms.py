@@ -5,4 +5,4 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Tovar
 
-        fields = ['title', 'text', 'image']
+        fields = ['title', 'text', 'image', 'author']

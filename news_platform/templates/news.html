@@ -6,6 +6,11 @@
 <section class="all-news">
     <h1 style="margin: 40px 0;">Все свежие новости</h1>
 
+    <form action="" method="get">
+        {{ filterset.form.as_p }}
+        <input type="submit" value="Найти">
+    </form>
+
     <div class="news-grid">
         {% for post in post %}
         <article class="card">
@@ -29,5 +34,26 @@
             <p>Новостей пока нет.</p>
         {% endfor %}
     </div>
+
+    {% if is_paginated %}
+      <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; первая</a>
+                <a href="?page={{ page_obj.previous_page_number }}">назад</a>
+            {% endif %}
+
+            <span class="current">
+                Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">вперед</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">последняя &raquo;</a>
+            {% endif %}
+        </span>
+      </div>
+    {% endif %}
+
 </section>
 {% endblock %}

@@ -1,0 +1,5 @@
+2026-01-27 11:55:28,738 INFO autoreload Watching for file changes with StatReloader
+2026-01-27 12:04:24,171 INFO autoreload Watching for file changes with StatReloader
+2026-01-27 12:11:31,535 WARNING test_logs WARNING: Сообщение с PATHNAME.
+2026-01-27 12:11:31,535 ERROR test_logs ERROR: Сообщение со СТЕКОМ.
+2026-01-27 12:11:31,535 INFO test_logs INFO: Должно быть в general.log.

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Еженедельный дайджест</title>
+</head>
+<body>
+    <h2>Привет! Вот новые статьи в категории "{{ category.name }}" за прошедшую неделю:</h2>
+    <ul>
+        {% for post in posts %}
+            <li>
+                <a href="{{ link }}{{ post.get_absolute_url }}">{{ post.title }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

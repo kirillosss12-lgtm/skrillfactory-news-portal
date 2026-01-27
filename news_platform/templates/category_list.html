@@ -1,0 +1,9 @@
+<h3>{{ category.name }}</h3>
+
+{% if user.is_authenticated %}
+    {% if user in category.subscribers.all %}
+        <a href="{% url 'unsubscribe' category.id %}" class="btn btn-secondary">Отписаться</a>
+    {% else %}
+        <a href="{% url 'subscribe' category.id %}" class="btn btn-primary">Подписаться</a>
+    {% endif %}
+{% endif %}

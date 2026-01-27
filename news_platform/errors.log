@@ -1,0 +1,10 @@
+2026-01-27 12:07:19,678 ERROR Ошибка в django.request! D:\newsScill\news_platform\test_logs.py
+Traceback (most recent call last):
+  File "D:\newsScill\news_platform\test_logs.py", line 36, in run_tests
+    raise Exception("Тестовая ошибка запроса")
+Exception: Тестовая ошибка запроса
+2026-01-27 12:11:31,535 ERROR Ошибка в django.request! D:\newsScill\news_platform\test_logs.py
+Traceback (most recent call last):
+  File "D:\newsScill\news_platform\test_logs.py", line 36, in run_tests
+    raise Exception("Тестовая ошибка запроса")
+Exception: Тестовая ошибка запроса

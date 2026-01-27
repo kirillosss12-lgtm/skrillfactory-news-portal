@@ -23,6 +23,12 @@
             {{ article.text|censor|linebreaks }}
         </div>
 
+        {% if user in article.category.subscribers.all %}
+            <a href="{% url 'news:unsubscribe' article.category.id %}" class="btn btn-secondary">Отписаться</a>
+        {% else %}
+            <a href="{% url 'news:subscribe' article.category.id %}" class="btn btn-primary">Подписаться</a>
+        {% endif %}
+
         <a href="/news/">Назад к списку новостей</a>
     </body>
 {% endblock %}

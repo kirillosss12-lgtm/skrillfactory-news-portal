@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h2>Вышла новая новость: {{ tovar.title }}</h2>
+    <p><strong>Краткое содержание:</strong></p>
+    <p>{{ tovar.text|truncatechars:150 }}</p>
+    <br>
+    <a href="http://127.0.0.1:8000{{ tovar.get_absolute_url }}">Читать полностью</a>
+    <p>Вы получили это письмо, так как подписаны на категорию в нашем приложении.</p>
+</body>
+</html>

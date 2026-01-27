@@ -1,11 +1,46 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Tovar, Category
 from .filters import ProductFilter
 from .forms import PostForm
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Category
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
+
+import logging
+from django.http import HttpResponse
+from django.core.exceptions import PermissionDenied
+
+# Получаем разные логгеры
+logger = logging.getLogger('django')
+logger_request = logging.getLogger('django.request')
+logger_security = logging.getLogger('django.security')
+logger_db = logging.getLogger('django.db.backends')
+
+
+def test_logging(request):
+    # 1. Проверка Консоли (DEBUG=True) и General.log (DEBUG=False)
+    logger.debug("Тест DEBUG: виден в консоли")
+    logger.info("Тест INFO: виден в консоли и general.log")
+    logger.warning("Тест WARNING: + путь к файлу")
+
+    # 2. Проверка Errors.log и Почты
+    try:
+        raise ValueError("Тестовая ошибка")
+    except ValueError as e:
+        # Должно попасть в errors.log (со стеком) и на почту (без стека)
+        logger_request.error("Ошибка запроса!", exc_info=True)
+
+    # 3. Проверка Security.log
+    logger_security.info("Событие безопасности: вход выполнен")
+
+    # 4. Проверка фильтрации уровней (SQL ошибка)
+    logger_db.error("Ошибка базы данных!")
+
+    return HttpResponse("Логи сгенерированы. Проверьте консоль и файлы.")
 
 # Create your views here.
 def index(request):
@@ -110,3 +145,15 @@ class ArticleDelete(PermissionRequiredMixin, DeleteView):
     template_name = 'delete.html'
     success_url = '/news/'
     #fields = '__all__'
+
+@login_required
+def subscribe(request, pk):
+    category = get_object_or_404(Category, id=pk)
+    category.subscribers.add(request.user)
+    return redirect(request.META.get('HTTP_REFERER', '/')) # Возвращает туда, где был пользователь
+
+@login_required
+def unsubscribe(request, pk):
+    category = get_object_or_404(Category, id=pk)
+    category.subscribers.remove(request.user)
+    return redirect(request.META.get('HTTP_REFERER', '/'))

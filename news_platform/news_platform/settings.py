@@ -12,6 +12,129 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from celery.schedules import crontab
+import logging
+
+
+# 1. Добавляем специальный класс для гибкого формата в консоли
+class ConsoleFormatter(logging.Formatter):
+    def format(self, record):
+        # Базовый формат (DEBUG, INFO)
+        fmt = '{asctime} {levelname} {message}'
+        # Для WARNING и выше добавляем путь (pathname)
+        if record.levelno >= logging.WARNING:
+            fmt = '{asctime} {levelname} {message} {pathname}'
+
+        formatter = logging.Formatter(fmt, style='{')
+
+        # Если уровень ERROR и выше, форматтер сам добавит exc_info,
+        # если он есть в записи лога
+        return formatter.format(record)
+
+
+# 2. Добавляем фильтр для удаления стека из почты
+class NoStackTraceFilter(logging.Filter):
+    def filter(self, record):
+        record.exc_info = None
+        record.exc_text = None
+        return True
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'console_custom': {
+        '()': 'news_platform.settings.ConsoleFormatter',
+        },
+        'general_format': {
+            'format': '{asctime} {levelname} {module} {message}',
+            'style': '{',
+        },
+        'error_format': {
+            'format': '{asctime} {levelname} {message} {pathname}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'no_stack_trace': {
+            '()': 'news_platform.settings.NoStackTraceFilter',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'console_custom',  # Ссылка на динамический формат
+            'encoding': 'utf-8',
+        },
+        'general_file': {
+            'level': 'INFO',
+            'filters': ['require_debug_false'],
+            'class': 'logging.FileHandler',
+            'filename': 'general.log',
+            'formatter': 'general_format',
+        },
+        'errors_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'errors.log',
+            'formatter': 'error_format',
+        },
+        'security_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'security.log',
+            'formatter': 'general_format',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false', 'no_stack_trace'],  # DEBUG=False и без стека
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'error_format',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'general_file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['errors_file', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['errors_file', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.template': {
+            'handlers': ['errors_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['errors_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['security_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,7 +147,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-tno)i%j84-1p^emme!!u0aj(z9$@#9%+09(p_f&#eh#sxhs7&s'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -47,7 +170,7 @@ INSTALLED_APPS = [
     'news',
     'users',
     'django_filters',
-
+    'django_celery_beat',
     'django.contrib.sites',
     'allauth',
     'allauth.account',
@@ -58,7 +181,20 @@ INSTALLED_APPS = [
 
 SITE_ID = 1
 
+ADMINS = [('Admin', 'kirillosss12@gmail.com')]
+# Для теста почты в консоль (чтобы не настраивать SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+CELERY_BROKER_URL = 'redis://:vTyFivyCYLCy11cfXNRMJlms8m45b2wT@://redis-19836.c241.us-east-1-4.ec2.cloud.redislabs.com'
+CELERY_RESULT_BACKEND = 'redis://:vTyFivyCYLCy11cfXNRMJlms8m45b2wT@://redis-19836.c241.us-east-1-4.ec2.cloud.redislabs.com'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+SITE_URL = 'http://127.0.0.1:8000'
+DEFAULT_FROM_EMAIL = 'kirillosss12@gmail.com' # Ваш email
+
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_REDIS_BACKEND_USE_SSL = False
 
 # Адреса перенаправлений
 LOGIN_URL = '/accounts/login/'
@@ -72,6 +208,13 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'none' # Или 'optional'
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'cache_files'), # Указываем, куда будем сохранять кэшируемые файлы! Не забываем создать папку cache_files внутри папки с manage.py!
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -104,7 +247,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'news_platform.wsgi.application'
-
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -148,6 +291,23 @@ USE_I18N = True
 USE_TZ = True
 
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://:vTyFivyCYLCy11cfXNRMJlms8m45b2wT@://redis-19836.c241.us-east-1-4.ec2.cloud.redislabs.com",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+CELERY_BEAT_SCHEDULE = {
+    'action_every_monday_8am': {
+        'task': 'your_app.tasks.weekly_digest',
+        'schedule': crontab(hour=8, minute=0, day_of_week=1),
+    },
+}
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
@@ -157,6 +317,15 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static'
 
 ]
+
+EMAIL_HOST = 'smtp.yandex.ru'  # или smtp.gmail.com
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'kirillosss12@gmail.com'
+EMAIL_HOST_PASSWORD = 'admin' # Не обычный пароль, а специальный для приложений!
+EMAIL_USE_SSL = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
 
 
 MEDIA_URL = '/media/'

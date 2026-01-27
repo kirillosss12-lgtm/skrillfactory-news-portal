@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        .news-item { margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Еженедельный дайджест в категории "{{ category.name }}"</h1>
+    <p>Здравствуйте! Посмотрите, что нового произошло за последние 7 дней:</p>
+
+    {% for item in items %}
+    <div class="news-item">
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.text|truncatechars:100 }}</p>
+        <a href="{{ link }}{{ item.get_absolute_url }}">Перейти к новости</a>
+    </div>
+    {% empty %}
+        <p>В этой категории за неделю новостей не было.</p>
+    {% endfor %}
+
+    <br>
+    <hr>
+    <p>С уважением, Ваша команда новостей (2026).</p>
+</body>
+</html>
